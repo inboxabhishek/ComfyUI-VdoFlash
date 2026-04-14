@@ -39,7 +39,7 @@ class VdoFlashDirectorNode:
     FUNCTION = "execute"
     CATEGORY = "🎬 VdoFlash"
 
-    def execute(
+    async def execute(
         self, 
         topic_script, 
         duration_seconds, 
@@ -88,4 +88,4 @@ class VdoFlashDirectorNode:
         }
 
         engine = VideoEngine()
-        return (engine.run(cfg, reference_image),)
+        return (await engine.run(cfg, reference_image),)

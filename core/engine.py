@@ -9,7 +9,7 @@ class VideoEngine:
     def __init__(self):
         self.executor = GraphExecutor()
 
-    def run(self, cfg, reference_image=None):
+    async def run(self, cfg, reference_image=None):
         # 1. Capture Environment
         vram = get_vram_profile()
 
@@ -31,13 +31,14 @@ class VideoEngine:
             # Step 1: Base Image Graph Execution
             graph = build_image_graph(scene["prompt"], seed, width, height)
             
-            # We assume image executor is stable for MVP, but you could try/except this too
-            image = self.executor.run(graph)
+            # Now an async call
+            image = await self.executor.run(graph)
 
             # Step 2: Adaptive Fallback Video Block
             try:
                 if cfg["models"]["video"] != "none":
-                    video = image.repeat(cfg["fps"], 1, 1, 1) # Video execution stub logic here
+                    # Placeholder for video execution - still static for MVP
+                    video = image.repeat(cfg["fps"], 1, 1, 1) 
                 else:
                     print("⚠️ Video explicitly disabled, rendering static block.")
                     video = image.repeat(cfg["fps"], 1, 1, 1)
