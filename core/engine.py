@@ -6,8 +6,8 @@ from .validator import validate_config, resolve_dimensions
 
 class VideoEngine:
 
-    def __init__(self):
-        self.executor = GraphExecutor()
+    def __init__(self, dry_run=False):
+        self.executor = GraphExecutor(dry_run=dry_run)
 
     async def run(self, cfg, reference_image=None):
         # 1. Capture Environment

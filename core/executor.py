@@ -23,18 +23,28 @@ except ImportError:
 
 class GraphExecutor:
 
-    def __init__(self):
+    def __init__(self, dry_run=False):
         # PromptExecutor requires the server instance and cache_args
         # Default ram headroom to 4GB if not specified
+        self.dry_run = dry_run
         default_cache_args = {"ram": 4.0}
         
-        if hasattr(PromptServer, "instance"):
-            self.executor = PromptExecutor(PromptServer.instance, cache_args=default_cache_args)
+        if not self.dry_run:
+            if hasattr(PromptServer, "instance"):
+                self.executor = PromptExecutor(PromptServer.instance, cache_args=default_cache_args)
+            else:
+                # Fallback if instance isn't ready yet, though it usually is by node load time
+                self.executor = None
         else:
-            # Fallback if instance isn't ready yet, though it usually is by node load time
             self.executor = None
 
     async def run(self, graph):
+        if self.dry_run:
+            print("🧪 [DRY-RUN] Simulating graph execution...")
+            # Return a dummy tensor [B, H, W, C]
+            import torch
+            return torch.zeros((1, 512, 512, 3))
+
         if self.executor is None:
             if hasattr(PromptServer, "instance"):
                 self.executor = PromptExecutor(PromptServer.instance, cache_args={"ram": 4.0})
