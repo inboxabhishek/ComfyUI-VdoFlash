@@ -4,14 +4,20 @@ import torch
 import uuid
 
 # Get access to ComfyUI standard nodes
-try:
-    import nodes
-except ImportError:
-    # If running in a context where it's not on path
+def get_comfy_nodes():
+    # Attempt to get the global nodes module, avoiding the local nodes.py shell
+    if "nodes" in sys.modules and hasattr(sys.modules["nodes"], "NODE_CLASS_MAPPINGS"):
+        return sys.modules["nodes"]
+    
+    # Force reach to ComfyUI root
     base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
     if base_path not in sys.path:
-        sys.path.append(base_path)
+        sys.path.insert(0, base_path) # Insert at 0 to prioritize
+        
     import nodes
+    return nodes
+
+nodes = get_comfy_nodes()
 
 try:
     from server import PromptServer
@@ -83,7 +89,7 @@ class GraphExecutor:
             return images
 
         except Exception as e:
-            print(f"❌ DirectExecution Failure: {e}")
+            print(f"ERROR: DirectExecution Failure: {e}")
             import traceback
             traceback.print_exc()
             return None

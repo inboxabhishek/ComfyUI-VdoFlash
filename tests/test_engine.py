@@ -7,12 +7,36 @@ import torch
 
 # 1. Mock ComfyUI environment before importing our core
 mm = MagicMock()
-# Explicitly set return values to ensure they are used even when called with args
 mm.get_torch_device = MagicMock(return_value="cuda")
 mm.get_total_memory = MagicMock(return_value=16.0 * (1024**3))
 
+# Mock Node Classes
+class MockNode:
+    def __init__(self, return_count=1):
+        self.return_count = return_count
+    
+    def __getattr__(self, name):
+        def mock_func(*args, **kwargs):
+            if self.return_count == 3:
+                return (MagicMock(), MagicMock(), MagicMock())
+            return (torch.zeros((1, 64, 64, 3)),)
+        return mock_func
+
+    def __call__(self, *args, **kwargs):
+        return self
+
+mock_nodes = MagicMock()
+mock_nodes.NODE_CLASS_MAPPINGS = {
+    "CheckpointLoaderSimple": MockNode(return_count=3),
+    "CLIPTextEncode": MockNode(return_count=1),
+    "EmptyLatentImage": MockNode(return_count=1),
+    "KSampler": MockNode(return_count=1),
+    "VAEDecode": MockNode(return_count=1)
+}
+
 sys.modules['comfy'] = MagicMock()
 sys.modules['comfy.model_management'] = mm
+sys.modules['nodes'] = mock_nodes
 sys.modules['execution'] = MagicMock()
 sys.modules['server'] = MagicMock()
 
@@ -86,6 +110,22 @@ class TestVdoFlashEngine(unittest.TestCase):
             self.assertIsInstance(result, torch.Tensor)
             self.assertEqual(result.shape[0], 48)
             print(f"OK: Engine produced tensor with shape: {result.shape}")
+
+    def test_direct_execution_logic(self):
+        print("\nTEST: Testing Full Direct Execution Logic (Mocked Nodes)...")
+        from unittest.mock import patch
+        
+        # initialize engine without dry_run
+        engine = VideoEngine(dry_run=False)
+        
+        with patch('core.engine.get_vram_profile') as mock_vram:
+            mock_vram.return_value = {"level": "high", "res": 1024, "video": True}
+            
+            loop = asyncio.get_event_loop()
+            result = loop.run_until_complete(engine.run(self.cfg))
+            
+            self.assertIsInstance(result, torch.Tensor)
+            print(f"OK: Full logic chain executed successfully. Final shape: {result.shape}")
 
 if __name__ == '__main__':
     unittest.main()
