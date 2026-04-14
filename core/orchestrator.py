@@ -117,9 +117,13 @@ class GraphOrchestrator:
                     "images": [current_batch_node, 0],
                     "frame_rate": cfg["fps"],
                     "loop_count": 0,
+                    "filename_prefix": "VdoFlash",
                     "format": "video/h264-mp4",
-                    "save_output": True,
-                    "filename_prefix": "VdoFlash"
+                    "pix_fmt": "yuv420p",
+                    "crf": 19,
+                    "save_metadata": True,
+                    "pingpong": False,
+                    "save_output": True
                 }
             }
         else:
