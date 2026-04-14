@@ -24,9 +24,12 @@ except ImportError:
 class GraphExecutor:
 
     def __init__(self):
-        # PromptExecutor requires the server instance
+        # PromptExecutor requires the server instance and cache_args
+        # Default ram headroom to 4GB if not specified
+        default_cache_args = {"ram": 4.0}
+        
         if hasattr(PromptServer, "instance"):
-            self.executor = PromptExecutor(PromptServer.instance)
+            self.executor = PromptExecutor(PromptServer.instance, cache_args=default_cache_args)
         else:
             # Fallback if instance isn't ready yet, though it usually is by node load time
             self.executor = None
@@ -34,7 +37,7 @@ class GraphExecutor:
     async def run(self, graph):
         if self.executor is None:
             if hasattr(PromptServer, "instance"):
-                self.executor = PromptExecutor(PromptServer.instance)
+                self.executor = PromptExecutor(PromptServer.instance, cache_args={"ram": 4.0})
             else:
                 raise Exception("PromptServer instance not found. Executor cannot initialize.")
 
