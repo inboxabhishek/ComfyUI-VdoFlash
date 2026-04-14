@@ -115,8 +115,8 @@ class GraphOrchestrator:
                 "class_type": "VHS_VideoCombine",
                 "inputs": {
                     "images": [current_batch_node, 0],
-                    "fps": cfg["fps"],
-                    "frame_count": 0,
+                    "frame_rate": cfg["fps"],
+                    "loop_count": 0,
                     "format": "video/h264-mp4",
                     "save_output": True,
                     "filename_prefix": "VdoFlash"
