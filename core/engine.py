@@ -22,7 +22,7 @@ class VideoEngine:
         all_frames = []
         prev_frame = None
 
-        print(f"🎬 Init Engine -> Resolution resolved to {width}x{height} | Models: [Img: {cfg['models']['image']}, Vid: {cfg['models']['video']}]")
+        print(f"INIT Engine -> Resolution resolved to {width}x{height} | Models: [Img: {cfg['models']['image']}, Vid: {cfg['models']['video']}]")
 
         for scene in scenes:
 
@@ -39,12 +39,12 @@ class VideoEngine:
             )
             
             # Now an async call
-            print(f"🎬 Rendering scene {scene['id']}...")
+            print(f"Engine: Rendering scene {scene['id']}...")
             image = await self.executor.run(graph)
 
             # FATAL ERROR CHECK
             if image is None:
-                err_msg = f"❌ FATAL ERROR: Scene {scene['id']} failed to produce an image. Check your console for 'Model not found' or OOM errors."
+                err_msg = f"FATAL ERROR: Scene {scene['id']} failed to produce an image. Check your console for 'Model not found' or OOM errors."
                 print(err_msg)
                 raise RuntimeError(err_msg)
 
@@ -54,10 +54,10 @@ class VideoEngine:
                     # Placeholder for video execution - still static for MVP
                     video = image.repeat(cfg["fps"], 1, 1, 1) 
                 else:
-                    print(f"🎬 Scene {scene['id']} -> static image block.")
+                    print(f"Engine: Scene {scene['id']} -> static image block.")
                     video = image.repeat(cfg["fps"], 1, 1, 1)
             except Exception as e:
-                print(f"⚠️ VIDEO FAILURE in scene {scene['id']}: {e}. Falling back to image sequence.")
+                print(f"WARNING: VIDEO FAILURE in scene {scene['id']}: {e}. Falling back to image sequence.")
                 # Extra safety: check image again before repeat
                 if image is not None:
                     video = image.repeat(cfg["fps"], 1, 1, 1)

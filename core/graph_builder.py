@@ -17,19 +17,33 @@ def build_image_graph(prompt, seed, width, height, image_model="sdxl"):
         },
         "2": {
             "class_type": "CLIPTextEncode",
-            "inputs": {"text": prompt, "clip": ["1", 1]}
+            "inputs": {"text": f"score_9, score_8_up, score_7_up, {prompt}", "clip": ["1", 1]} # SDXL style prompt
         },
         "3": {
             "class_type": "KSampler",
             "inputs": {
                 "model": ["1", 0],
-                "positive": ["2", 0],
                 "seed": seed,
-                "steps": 20
+                "steps": 25,
+                "cfg": 7.0,
+                "sampler_name": "euler",
+                "scheduler": "normal",
+                "positive": ["2", 0],
+                "negative": ["5", 0],
+                "latent_image": ["6", 0],
+                "denoise": 1.0
             }
         },
         "4": {
             "class_type": "VAEDecode",
             "inputs": {"samples": ["3", 0], "vae": ["1", 2]}
+        },
+        "5": {
+            "class_type": "CLIPTextEncode",
+            "inputs": {"text": "text, watermark, blurry, low quality", "clip": ["1", 1]}
+        },
+        "6": {
+            "class_type": "EmptyLatentImage",
+            "inputs": {"width": width, "height": height, "batch_size": 1}
         }
     }

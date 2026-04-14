@@ -40,7 +40,7 @@ class GraphExecutor:
 
     async def run(self, graph):
         if self.dry_run:
-            print("🧪 [DRY-RUN] Simulating graph execution...")
+            print("[DRY-RUN] Simulating graph execution...")
             # Return a dummy tensor [B, H, W, C]
             import torch
             return torch.zeros((1, 512, 512, 3))
