@@ -51,7 +51,10 @@ class GraphExecutor:
         await self.executor.execute_async(graph, prompt_id, extra_data={}, execute_outputs=output_nodes)
         
         # After execution, we extract results asynchronously
-        return await self.get_output_from_caches(prompt_id, graph)
+        result = await self.get_output_from_caches(prompt_id, graph)
+        if result is None:
+            print(f"⚠️ Executor failed to find VAEDecode output for prompt {prompt_id}. Check if the sub-graph crashed.")
+        return result
 
     async def get_output_from_caches(self, prompt_id, graph):
         # We need to find the node that was the 'final' output (VAEDecode)

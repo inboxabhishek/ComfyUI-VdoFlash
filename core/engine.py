@@ -29,10 +29,24 @@ class VideoEngine:
             seed = cfg["seed"] + scene["id"]
             
             # Step 1: Base Image Graph Execution
-            graph = build_image_graph(scene["prompt"], seed, width, height)
+            # Pass the selected image model to the builder
+            graph = build_image_graph(
+                scene["prompt"], 
+                seed, 
+                width, 
+                height, 
+                image_model=cfg["models"]["image"]
+            )
             
             # Now an async call
+            print(f"🎬 Rendering scene {scene['id']}...")
             image = await self.executor.run(graph)
+
+            # FATAL ERROR CHECK
+            if image is None:
+                err_msg = f"❌ FATAL ERROR: Scene {scene['id']} failed to produce an image. Check your console for 'Model not found' or OOM errors."
+                print(err_msg)
+                raise RuntimeError(err_msg)
 
             # Step 2: Adaptive Fallback Video Block
             try:
@@ -40,11 +54,15 @@ class VideoEngine:
                     # Placeholder for video execution - still static for MVP
                     video = image.repeat(cfg["fps"], 1, 1, 1) 
                 else:
-                    print("⚠️ Video explicitly disabled, rendering static block.")
+                    print(f"🎬 Scene {scene['id']} -> static image block.")
                     video = image.repeat(cfg["fps"], 1, 1, 1)
             except Exception as e:
-                print(f"⚠️ VIDEO FAILURE: {e}. Recovering with image loop!")
-                video = image.repeat(cfg["fps"], 1, 1, 1)
+                print(f"⚠️ VIDEO FAILURE in scene {scene['id']}: {e}. Falling back to image sequence.")
+                # Extra safety: check image again before repeat
+                if image is not None:
+                    video = image.repeat(cfg["fps"], 1, 1, 1)
+                else:
+                    raise RuntimeError(f"❌ Critical failure in scene {scene['id']}: No image available for fallback.")
 
             # Keep Continuity memory
             prev_frame = video[-1:]
