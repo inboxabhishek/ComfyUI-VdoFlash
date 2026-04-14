@@ -46,8 +46,13 @@ class VdoFlashDirectorNode:
 
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("job_status",)
+    OUTPUT_NODE = True
     FUNCTION = "execute"
     CATEGORY = "🎬 VdoFlash"
+
+    @classmethod
+    def IS_CHANGED(cls, **kwargs):
+        return float("NaN")
 
     async def execute(
         self, 
